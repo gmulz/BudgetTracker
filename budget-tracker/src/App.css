@@ -8,10 +8,53 @@
 }
 
 .App-header {
-  background-color: #222;
-  height: 150px;
+  background-color: #08C;
+  height: 30px;
   padding: 20px;
+  color: #047;
+}
+
+.App-header h1{
+  float: left;
+  margin: 0;
+}
+
+/*.App-header form{
+  background-color: #047;
+  width: 100px;
+  height: 35px;
+  z-index: 100;
+  float: right;
+}
+*/
+.App-header form div{
+  height: inherit;
+}
+.App-header form div input[name='filePicker']{
+  height:inherit;
   color: white;
+}
+
+#upload{
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+}
+
+#upload + label{
+  color: white;
+  float:right;
+  background-color: #047;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+
+.App-header form input[name='filePicker_filename']{
+  display:none;
 }
 
 .App-intro {
