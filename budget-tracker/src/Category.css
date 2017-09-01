@@ -1,0 +1,46 @@
+.Category{
+	/*margin-left: 40px;*/
+	overflow: hidden;
+}
+
+.Category-header{
+	width: 700px;
+	height: 30px;
+	border: 2px solid #777;
+	border-radius: 4px;
+	overflow: hidden;
+	color: #333;
+}
+
+.Category-title{
+	background-color: #AAA;
+	float: left;
+	width: 590px;
+	height: 100%;
+}
+
+.Category-title .add-button{
+	float: left;
+	margin-left: 5px;
+}
+
+.Category-total{
+	background-color: #DDD;
+	float: left;
+	width: 100px;
+	height: 100%;
+	display: inline-block;
+	padding-left: 10px;
+
+}
+
+.Category-title h3{
+	margin-top: 2px;
+	float: left;
+	margin-left: 5px;
+}
+
+.Category-txn-area{
+	transition: linear 1s;
+	-moz-transition: all 1s ease;
+}
