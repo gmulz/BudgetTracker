@@ -118,10 +118,14 @@ class App extends Component {
   }
 
   renderData(){
-    var ret = [];
-    for(var i = 0; i < this.state.data.length; i++){
-      ret.push(<Category cat={this.state.data[i]} onAddTxn={this.addTxn.bind(this)}/>);
-    }
+    var ret = this.state.data.map((category, index) => 
+      <Category cat={category} onAddTxn={this.addTxn.bind(this)} key={index} idx={index.toString()} />
+      );
+
+    // for(var i = 0; i < this.state.data.length; i++){
+    //   console.log(i.toString());
+    //   ret.push(<Category cat={this.state.data[i]} onAddTxn={this.addTxn.bind(this)} key={i.toString()}/>);
+    // }
     this.categories = ret;
     return ret;
   }

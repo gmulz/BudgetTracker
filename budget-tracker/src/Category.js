@@ -8,8 +8,22 @@ class Category extends Component{
 		this.state = {
 					newTxn: "",
 					newTxnCost: "",
-					showTxn: false
+					showTxn: false,
+					editing: false
 				};
+		
+		this.showHideTransactions = this.showHideTransactions.bind(this);
+		this.makeEditable = this.makeEditable.bind(this);
+		this.categoryNameChange = this.categoryNameChange.bind(this);
+		this.handleKeyPressTxn = this.handleKeyPressTxn.bind(this);
+		this.handleKeyPressEdit = this.handleKeyPressEdit.bind(this);
+		this.txnNameChange = this.txnNameChange.bind(this);
+		this.txnCostChange = this.txnCostChange.bind(this);
+		this.addTxn = this.addTxn.bind(this);
+		this.handleOutsideClick = this.handleOutsideClick.bind(this);
+
+
+
 
 	}
 
@@ -17,23 +31,42 @@ class Category extends Component{
 		return (
 			<div className="Category">
 			
-				<div className="Category-header">
+				<div className="Category-header" ref={(node) => {this.node = node}}>
 				
 					<div className="Category-title"> 
-						<input type="checkbox" onChange={this.showHideTransactions.bind(this)} 
-							   checked={this.state.showTxn}/>
-						<h3> {this.props.cat.name} </h3> 
-		                <input type="text" className="form-control"
-	                      placeholder="Add expense" 
-	                      onChange={this.txnNameChange.bind(this)} 
-	                      onKeyPress={this.handleKeyPress.bind(this)}
-	                      value={this.state.newTxn}/>
-	                    <input type="text" className="form-control"
-	                      placeholder="Add cost" 
-	                      onChange={this.txnCostChange.bind(this)} 
-	                      onKeyPress={this.handleKeyPress.bind(this)}
-	                      value={this.state.newTxnCost}/>
-		                <button className="add-button" onClick={this.addTxn.bind(this)}> + </button>
+						<input type="checkbox" onChange={this.showHideTransactions} 
+							   checked={this.state.showTxn} id={"category-check-" + this.props.idx}/>
+						<label htmlFor={"category-check-" + this.props.idx}>
+							<span style={{display: (this.state.editing ? "none" : "")}}>{this.props.cat.name}</span>
+						</label>
+						
+						<button className="edit-button" onClick={this.makeEditable}
+							style={{display: (this.state.editing ? "none" : "")}}> edit </button>
+						
+						<div className="Category-edit-area" style={{display: (this.state.editing ? "inline-block" : "none")}}>
+							<input type="text" className="form-control"
+								defaultValue={this.props.cat.name}
+								ref={ (input) => {this.catNameInput = input}}
+								onChange={this.categoryNameChange}
+								onKeyPress={this.handleKeyPressEdit}
+								placeholder="Enter category name"/>
+
+						</div>
+						
+						<div className="Category-input-area">
+							<input type="text" className="form-control"
+		                      placeholder="Add expense" 
+		                      ref={ (input) => {this.expenseInput = input;} }
+		                      onChange={this.txnNameChange} 
+		                      onKeyPress={this.handleKeyPressTxn}
+		                      value={this.state.newTxn}/>
+		                    <input type="text" className="form-control"
+		                      placeholder="Add cost" 
+		                      onChange={this.txnCostChange} 
+		                      onKeyPress={this.handleKeyPressTxn}
+		                      value={this.state.newTxnCost}/>
+			                <button className="add-button" onClick={this.addTxn}> + </button>
+		                </div>
 					</div> 
 					
 					<div className="Category-total">{this.sumTotal()}</div>
@@ -47,10 +80,37 @@ class Category extends Component{
 
 		);
 	}
-	handleKeyPress(event){
+	handleKeyPressTxn(event){
 		if(event.key === 'Enter'){
 			this.addTxn();
 		}
+	}
+
+	handleKeyPressEdit(event){
+		if(event.key === 'Enter'){
+			this.unMakeEditable();
+		}
+	}
+
+	categoryNameChange(){
+		this.props.cat.name = this.catNameInput.value;
+		this.forceUpdate();
+	}
+
+	handleOutsideClick(event){
+		if(!this.node.contains(event.target)){
+			this.unMakeEditable();
+		}
+	}
+
+	makeEditable(){
+		document.addEventListener('click', this.handleOutsideClick.bind(this), false);
+		this.setState({editing: true});
+	}
+
+	unMakeEditable(){
+		document.removeEventListener('click', this.handleOutsideClick.bind(this), false);
+		this.setState({editing: false});
 	}
 
 	txnCostChange(event){
@@ -75,6 +135,7 @@ class Category extends Component{
 			this.props.onAddTxn();
 
 		}
+		this.expenseInput.focus();
 	}
 
 	renderTransactions(){
@@ -104,5 +165,6 @@ class Category extends Component{
 
 
 }
+
 
 export default Category;
