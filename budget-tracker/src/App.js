@@ -3,15 +3,19 @@ import logo from './logo.svg';
 import './App.css';
 import Category from './Category.js'
 import FileInput from 'react-file-input';
+import axios from 'axios';
+
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {data : [],
                 sum : 0,
-                newCategory: ""
+                newCategory: "",
               };
-    this.categories = [];
+    this.categorySet = new Set();
+    this.months = ["January", "February", "March", "April", "May", "June",
+                  "July", "August", "September", "October", "November", "December"]
 
   }
 
@@ -22,7 +26,7 @@ class App extends Component {
           <h1> Budget Tracker </h1>
           <form>
 
-            <input id="save" type="button" className="App-header-btn" onClick={this.downloadCSV.bind(this)} />
+            <input id="save" type="button" className="App-header-btn" onClick={this.sendDataToServer.bind(this)} />
             <label htmlFor="save"> Save </label>
 
             <input id="upload" className="App-header-btn" type="file" accept=".csv" onChange={this.parseCSV.bind(this)} />
@@ -55,6 +59,10 @@ class App extends Component {
   }
 
   addTxn(){
+    this.setState({data: this.state.data});
+  }
+
+  deleteTxn(){
     this.setState({data: this.state.data});
   }
 
@@ -105,10 +113,13 @@ class App extends Component {
     this.setState({newCategory: event.target.value});
   }
 
+
+
   addCategory() {
     var newCatName = this.state.newCategory;
-    if(newCatName){
+    if(newCatName && !this.categorySet.has(newCatName)){
       var newCategory = {name: newCatName, transactions: []};
+      this.categorySet.add(newCatName);
       var data = this.state.data;
       data.unshift(newCategory);
       this.setState({data: data, newCategory: ""});
@@ -117,15 +128,40 @@ class App extends Component {
     }
   }
 
+  deleteCategory(idx){
+    var data = this.state.data;
+    var cat = data.splice(idx, 1)[0];
+    this.categorySet.delete(cat.name);
+    this.setState({data: data});
+  }
+
+  moveCategoryUp(idx){
+    var data = this.state.data;
+    var cat = data.splice(idx, 1)[0];
+    data.splice(idx - 1, 0, cat);
+    this.setState({data: data});
+  }
+
+  moveCategoryDown(idx){
+    var data = this.state.data;
+    var cat = data.splice(idx, 1)[0];
+    data.splice(idx + 1, 0, cat);
+    this.setState({data: data});
+  }
+
   renderData(){
     var ret = this.state.data.map((category, index) => 
-      <Category cat={category} onAddTxn={this.addTxn.bind(this)} key={index} idx={index.toString()} />
+      <Category cat={category} 
+                onAddTxn={this.addTxn.bind(this)} 
+                key={category.name} 
+                idx={index}
+                deleteMe={this.deleteCategory.bind(this)}
+                onDeleteTxn={this.deleteTxn.bind(this)} 
+                moveUp={this.moveCategoryUp.bind(this)}
+                moveDown={this.moveCategoryDown.bind(this)}/>
       );
 
-    // for(var i = 0; i < this.state.data.length; i++){
-    //   console.log(i.toString());
-    //   ret.push(<Category cat={this.state.data[i]} onAddTxn={this.addTxn.bind(this)} key={i.toString()}/>);
-    // }
+
     this.categories = ret;
     return ret;
   }
@@ -136,10 +172,6 @@ class App extends Component {
     // this.updateDataValues();
   }
 
-  // updateDataValues(){
-  //   this.sumData();
-  //   // this.forceUpdate();
-  // }
 
   sumData(){
     var sum = 0;
@@ -164,12 +196,14 @@ class App extends Component {
       var header = lines[0];
       var headings = header.split(',');
       var data = [];
+      this.categorySet = new Set();
       for (var headingNum = 0; headingNum < headings.length; headingNum += 2){
         var heading = headings[headingNum];
         var categoryObj = {
           name: heading,
           transactions: []
         };
+        this.categorySet.add(categoryObj.name);
         data.push(categoryObj);
       }
       //Parse rest
@@ -195,7 +229,16 @@ class App extends Component {
     reader.readAsText(file);
   }
 
-
+  sendDataToServer(){
+    var now = new Date();
+    var filename = this.months[now.getMonth()] + now.getFullYear();
+    axios.post('http://localhost:5000/model',{
+      filename: filename,
+      data: this.state.data
+    }).then(function (response){
+      console.log(response);
+    });
+  }
 
 }
 

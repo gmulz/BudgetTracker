@@ -20,7 +20,11 @@ class Category extends Component{
 		this.txnNameChange = this.txnNameChange.bind(this);
 		this.txnCostChange = this.txnCostChange.bind(this);
 		this.addTxn = this.addTxn.bind(this);
+		this.deleteTxn = this.deleteTxn.bind(this);
+		this.deleteCategory = this.deleteCategory.bind(this);
 		this.handleOutsideClick = this.handleOutsideClick.bind(this);
+		this.moveUp = this.moveUp.bind(this);
+		this.moveDown = this.moveDown.bind(this);
 
 
 
@@ -34,7 +38,7 @@ class Category extends Component{
 				<div className="Category-header" ref={(node) => {this.node = node}}>
 				
 					<div className="Category-title"> 
-						<input type="checkbox" onChange={this.showHideTransactions} 
+						<input type="checkbox" onChange={this.showHideTransactions}
 							   checked={this.state.showTxn} id={"category-check-" + this.props.idx}/>
 						<label htmlFor={"category-check-" + this.props.idx}>
 							<span style={{display: (this.state.editing ? "none" : "")}}>{this.props.cat.name}</span>
@@ -44,16 +48,20 @@ class Category extends Component{
 							style={{display: (this.state.editing ? "none" : "")}}> edit </button>
 						
 						<div className="Category-edit-area" style={{display: (this.state.editing ? "inline-block" : "none")}}>
-							<input type="text" className="form-control"
-								defaultValue={this.props.cat.name}
+							
+							<button className="move-category-up" onClick={this.moveUp}>{'\u25B2'}</button>
+							<button className="move-category-down" onClick={this.moveDown}>{'\u25BC'}</button>
+							<input type="text" className="form-control" key={"inputcat" + this.props.idx}
+								value={this.props.cat.name}
 								ref={ (input) => {this.catNameInput = input}}
 								onChange={this.categoryNameChange}
 								onKeyPress={this.handleKeyPressEdit}
 								placeholder="Enter category name"/>
+							<button className="delete-button" onClick={this.deleteCategory}> delete </button>
 
 						</div>
 						
-						<div className="Category-input-area">
+						<div className="Category-input-area" style={{display: (this.state.editing ? "none" : "")}}>
 							<input type="text" className="form-control"
 		                      placeholder="Add expense" 
 		                      ref={ (input) => {this.expenseInput = input;} }
@@ -80,6 +88,21 @@ class Category extends Component{
 
 		);
 	}
+
+	deleteCategory(){
+		this.unMakeEditable();
+		this.setState({showTxn: false, newTxn: "", newTxnCost: ""});
+		this.props.deleteMe(this.props.idx);
+	}
+
+	moveUp(){
+		this.props.moveUp(this.props.idx);
+	}
+
+	moveDown(){
+		this.props.moveDown(this.props.idx);
+	}
+
 	handleKeyPressTxn(event){
 		if(event.key === 'Enter'){
 			this.addTxn();
@@ -93,8 +116,11 @@ class Category extends Component{
 	}
 
 	categoryNameChange(){
-		this.props.cat.name = this.catNameInput.value;
-		this.forceUpdate();
+		var name =  this.catNameInput.value;
+		if(name){
+			this.props.cat.name = name;
+			this.forceUpdate();
+		}
 	}
 
 	handleOutsideClick(event){
@@ -104,12 +130,12 @@ class Category extends Component{
 	}
 
 	makeEditable(){
-		document.addEventListener('click', this.handleOutsideClick.bind(this), false);
+		document.addEventListener('click', this.handleOutsideClick, false);
 		this.setState({editing: true});
 	}
 
 	unMakeEditable(){
-		document.removeEventListener('click', this.handleOutsideClick.bind(this), false);
+		document.removeEventListener('click', this.handleOutsideClick, false);
 		this.setState({editing: false});
 	}
 
@@ -138,12 +164,23 @@ class Category extends Component{
 		this.expenseInput.focus();
 	}
 
+	deleteTxn(idx){
+		this.props.cat.transactions.splice(idx, 1);
+		this.props.onDeleteTxn();
+	}
+
 	renderTransactions(){
 		var ret = [];
 		// console.log(this.state.transactions);
 		for(var i = 0; i < this.props.cat.transactions.length; i++){
 			// console.log(this.state.transactions[i]);
-			ret.push(<Transaction txn={this.props.cat.transactions[i]} parity={i % 2}/>);
+			ret.push(<Transaction 
+						txn={this.props.cat.transactions[i]}
+						deleteMe={this.deleteTxn}
+						parity={i % 2} 
+						key={this.props.cat.transactions.length - i} 
+						idx={i}
+						triggerUpdate={this.txnWasEdited.bind(this)}/>);
 		}
 		return ret;
 	}
@@ -161,6 +198,10 @@ class Category extends Component{
 	showHideTransactions(event){
 		// console.log(event.target.checked);
 		this.setState({showTxn: event.target.checked});
+	}
+
+	txnWasEdited(){
+		this.forceUpdate();
 	}
 
 

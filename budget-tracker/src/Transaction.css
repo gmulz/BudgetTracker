@@ -20,3 +20,15 @@
 	height: 100%;
 	background-color: rgba(255,255,255, .1);
 }
+
+.Transaction-title .edit-button{
+    display: none;
+}
+
+/*.Transaction-title:hover > .edit-button{
+    display: inline-block;
+}*/
+
+.Transaction:hover .Transaction-title .edit-button{
+	display: inline-block;
+}

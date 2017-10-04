@@ -20,7 +20,7 @@
     padding-top: 3px;
 }
 
-.Category-title label:hover ~ .edit-button{
+.Category-header:hover > .Category-title > .edit-button{
     display: inline-block;
 }
 
