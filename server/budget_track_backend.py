@@ -27,9 +27,10 @@ CORS(app)
 '''
 
 
-@app.route('/model', methods=['GET','POST', 'OPTIONS'])
+@app.route('/model', methods=['POST', 'GET'])
+# @app.route('/model/<fname>', methods=['GET'])
 #@crossdomain(origin='*')
-def process_model():
+def process_model(fname=None):
 
 	resp = flask.Response()
 	resp.mimetype = 'application/json'
@@ -43,12 +44,40 @@ def process_model():
 		with open("budgets/"+ filename + ".csv", 'w+') as csv:
 			csv.write(csv_string)
 			csv.truncate()
-		return resp
+		# return resp
+	elif request.method == 'GET':
+		fname = request.args.get('filename')
+		print fname
+		data = read_data_from_csv(fname)
+		resp.data = json.dumps(data)
+		# return resp
 	else:
 		print request
 
-		return resp
+	return resp
 
+def read_data_from_csv(filename):
+	data = []
+	with open("budgets/" + filename + ".csv", 'r+') as csv:
+		header = csv.readline()
+		headings = header.split(",")
+		for i in range(0, len(headings), 2):
+			heading = headings[i]
+			category = {"name": heading, "transactions": []}
+			data.append(category)
+		for line in csv:
+			# print line
+			elements = line.split(',')
+			# print elements
+			for i, element in enumerate(elements):
+				if i % 2 != 0:
+					continue
+				if element == '' or element == '\n':
+					continue
+				c = elements[i + 1]
+				transaction = {"title": element, "cost": float(c)}
+				data[i/2]['transactions'].append(transaction)
+	return data
 
 def write_data_to_csv_string(data):
 	csv_content = "" #"data:text/csv;charset=utf-8"

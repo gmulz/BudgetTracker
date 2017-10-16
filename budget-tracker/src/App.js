@@ -12,10 +12,13 @@ class App extends Component {
     this.state = {data : [],
                 sum : 0,
                 newCategory: "",
+                dirty: false
               };
     this.categorySet = new Set();
     this.months = ["January", "February", "March", "April", "May", "June",
                   "July", "August", "September", "October", "November", "December"]
+    this.getDataFromServer = this.getDataFromServer.bind(this);
+    this.getDataFromServer();
 
   }
 
@@ -27,7 +30,7 @@ class App extends Component {
           <form>
 
             <input id="save" type="button" className="App-header-btn" onClick={this.sendDataToServer.bind(this)} />
-            <label htmlFor="save"> Save </label>
+            <label htmlFor="save" style={{background: (this.state.dirty ? "#F00" : "#047")}}> Save </label>
 
             <input id="upload" className="App-header-btn" type="file" accept=".csv" onChange={this.parseCSV.bind(this)} />
             <label htmlFor="upload"> Choose Budget</label>
@@ -58,12 +61,18 @@ class App extends Component {
     return meh;
   }
 
+  notifyChange(){
+    this.setState({dirty: true});
+  }
+
   addTxn(){
-    this.setState({data: this.state.data});
+    this.setState({data: this.state.data,
+                  dirty: true});
   }
 
   deleteTxn(){
-    this.setState({data: this.state.data});
+    this.setState({data: this.state.data,
+                   dirty: true});
   }
 
 
@@ -109,7 +118,7 @@ class App extends Component {
     window.open(encodedURI);
   }
 
-  catNameChange(event){
+  catNameChange(event){ //the input field, not an individual one
     this.setState({newCategory: event.target.value});
   }
 
@@ -122,7 +131,7 @@ class App extends Component {
       this.categorySet.add(newCatName);
       var data = this.state.data;
       data.unshift(newCategory);
-      this.setState({data: data, newCategory: ""});
+      this.setState({data: data, newCategory: "", dirty: true});
       // console.log(this.state.data);
       // this.forceUpdate();
     }
@@ -132,21 +141,27 @@ class App extends Component {
     var data = this.state.data;
     var cat = data.splice(idx, 1)[0];
     this.categorySet.delete(cat.name);
-    this.setState({data: data});
+    this.setState({data: data, dirty: true});
   }
 
   moveCategoryUp(idx){
     var data = this.state.data;
+    if(idx - 1 < 0){
+      return;
+    }
     var cat = data.splice(idx, 1)[0];
     data.splice(idx - 1, 0, cat);
-    this.setState({data: data});
+    this.setState({data: data, dirty: true});
   }
 
   moveCategoryDown(idx){
     var data = this.state.data;
+    if(idx + 1 > data.length){
+      return;
+    }
     var cat = data.splice(idx, 1)[0];
     data.splice(idx + 1, 0, cat);
-    this.setState({data: data});
+    this.setState({data: data, dirty: true});
   }
 
   renderData(){
@@ -158,7 +173,8 @@ class App extends Component {
                 deleteMe={this.deleteCategory.bind(this)}
                 onDeleteTxn={this.deleteTxn.bind(this)} 
                 moveUp={this.moveCategoryUp.bind(this)}
-                moveDown={this.moveCategoryDown.bind(this)}/>
+                moveDown={this.moveCategoryDown.bind(this)}
+                notifyChange={this.notifyChange.bind(this)}/>
       );
 
 
@@ -237,7 +253,27 @@ class App extends Component {
       data: this.state.data
     }).then(function (response){
       console.log(response);
-    });
+      if(response.status == 200){
+        this.setState({dirty: false});
+      }
+    }.bind(this));
+  }
+
+  getDataFromServer(){
+    var now = new Date();
+    var filename = this.months[now.getMonth()] + now.getFullYear();
+    axios.get('http://localhost:5000/model',{
+        params: {
+          filename: filename
+        }
+    }).then(function (response){
+        console.log(response);
+        if(response.status == 200){
+          var data = response.data;
+          this.setState({data: data, dirty: false});
+        }
+
+      }.bind(this));
   }
 
 }

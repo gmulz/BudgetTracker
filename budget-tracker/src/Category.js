@@ -137,6 +137,7 @@ class Category extends Component{
 	unMakeEditable(){
 		document.removeEventListener('click', this.handleOutsideClick, false);
 		this.setState({editing: false});
+		this.props.notifyChange();
 	}
 
 	txnCostChange(event){
@@ -201,7 +202,8 @@ class Category extends Component{
 	}
 
 	txnWasEdited(){
-		this.forceUpdate();
+		// this.forceUpdate();
+		this.props.notifyChange();
 	}
 
 

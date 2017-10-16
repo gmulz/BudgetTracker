@@ -70,8 +70,8 @@ class Transaction extends Component{
 
 	unMakeEditable(){
 		document.removeEventListener('click', this.handleOutsideClick, false);
-
 		this.setState({editing: false});
+		this.props.triggerUpdate();
 	}
 
 	txnNameChange(){
@@ -83,11 +83,17 @@ class Transaction extends Component{
 	}
 
 	txnCostChange(){
+		var strval = this.txnCostInput.value;
 		var cost = parseFloat(this.txnCostInput.value);
-		if(cost){
-			this.props.txn.cost = cost;
+		console.log(cost);
+		if(cost || strval === ''){
+			if(cost){
+				this.props.txn.cost = cost;
+			} else {
+				this.props.txn.cost = '';
+			}
 			this.forceUpdate();
-			this.props.triggerUpdate();
+			// this.props.triggerUpdate();
 		}
 	}
 
@@ -106,7 +112,8 @@ class Transaction extends Component{
 
 	handleOutsideClick(event){
 		if(!this.node.contains(event.target)){
-			this.unMakeEditable();
+			// this.unMakeEditable();
+			this.handleKeyPressEdit({key: 'Enter'});
 		}
 	}
 }
