@@ -81,7 +81,7 @@ class Category extends Component{
 				
 				</div>
 
-				<ul className="Category-txn-area" style={{display: (this.state.showTxn) ? "contents" : "none"}}>
+				<ul className="Category-txn-area" style={{display: (this.state.showTxn) ? "block" : "none"}}>
 				{this.renderTransactions()}
 				</ul>
 			</div>

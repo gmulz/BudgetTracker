@@ -60,6 +60,8 @@
 .Category-txn-area{
     transition: linear 1s;
     -moz-transition: all 1s ease;
+    margin: 0;
+    padding: 0;
 }
 
 .Category-title input[type=checkbox]{

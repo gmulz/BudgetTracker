@@ -83,7 +83,7 @@ class App extends Component {
   }
 
   downloadCSV(){
-    var csvContent = "data:text/csv;charset=utf-8,";
+    var csvContent = "data:text/csv;charset=utf-8,"
     var longestTxnLength = 0;
     console.log("downloadin");
 
