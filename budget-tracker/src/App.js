@@ -10,6 +10,7 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {data : [],
+                monthlies: [{transactions: [], name: "Monthlies"}],
                 sum : 0,
                 newCategory: "",
                 dirty: false
@@ -19,7 +20,10 @@ class App extends Component {
                   "July", "August", "September", "October", "November", "December"]
     this.getDataFromServer = this.getDataFromServer.bind(this);
     this.getDataFromServer();
-
+    var now = new Date();
+    var night = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
+    var msToMidnight = night.getTime() - now.getTime();
+    setTimeout('document.location.refresh()', msToMidnight);
   }
 
   render() {
@@ -41,18 +45,22 @@ class App extends Component {
         <div className="App-body">
           <label id="super-total">Super Total: {this.sumData()}</label>
           
-          <div className="category-title">
-            <h2> Categories </h2> 
-              <input type="text" className="form-control"
-                      placeholder="Add category" 
-                      onChange={this.catNameChange.bind(this)} 
-                      onKeyPress={this.handleKeyPress.bind(this)}
-                      value={this.state.newCategory}/>
-              <button className="add-button" onClick={this.addCategory.bind(this)}> + </button>
+          <div className="category-area"> 
+            <div className="category-title">
+              <h2> Categories </h2> 
+                <input type="text" className="form-control"
+                        placeholder="Add category" 
+                        onChange={this.catNameChange.bind(this)} 
+                        onKeyPress={this.handleKeyPress.bind(this)}
+                        value={this.state.newCategory}/>
+                <button className="add-button" onClick={this.addCategory.bind(this)}> + </button>
+            </div>
+            {this.renderData()}
           </div>
 
-          <div className="category-area"> 
-            {this.renderData()}
+          <div className="monthly-area">
+            <h2> Monthlies </h2>
+            {this.renderMonthlies()}
           </div>
         </div>
 
@@ -174,12 +182,36 @@ class App extends Component {
                 onDeleteTxn={this.deleteTxn.bind(this)} 
                 moveUp={this.moveCategoryUp.bind(this)}
                 moveDown={this.moveCategoryDown.bind(this)}
-                notifyChange={this.notifyChange.bind(this)}/>
+                notifyChange={this.notifyChange.bind(this)}
+                setOpen={false}/>
       );
 
 
     this.categories = ret;
     return ret;
+  }
+
+  renderMonthlies(){
+    var ret = this.state.monthlies.map((monthly, index) =>
+      <Category cat={monthly} 
+                onAddTxn={this.addMonthly.bind(this)}
+                onDeleteTxn={this.deleteMonthly.bind(this)}
+                key={monthly.name}
+                idx={9999}
+                notifyChange={this.notifyChange.bind(this)}
+                setOpen={true}/>
+        )
+    return ret;
+  }
+
+  addMonthly(){
+    this.setState({monthlies: this.state.monthlies,
+                   dirty: true});
+  }
+
+  deleteMonthly(){
+    this.setState({monthlies: this.state.monthlies,
+                  dirty: true});
   }
 
   onDataLoaded(data){
@@ -197,6 +229,11 @@ class App extends Component {
       for(var j = 0; j < transactions.length; j++){
         sum += transactions[j].cost;
       }
+    }
+
+    var monthlies = this.state.monthlies[0].transactions;
+    for(var i = 0; i < monthlies.length; i++){
+      sum += monthlies[i].cost;
     }
     return sum
   }
@@ -250,7 +287,8 @@ class App extends Component {
     var filename = this.months[now.getMonth()] + now.getFullYear();
     axios.post('http://localhost:5000/model',{
       filename: filename,
-      data: this.state.data
+      data: this.state.data,
+      monthlies: this.state.monthlies
     }).then(function (response){
       console.log(response);
       if(response.status == 200){
@@ -269,8 +307,9 @@ class App extends Component {
     }).then(function (response){
         console.log(response);
         if(response.status == 200){
-          var data = response.data;
-          this.setState({data: data, dirty: false});
+          var data = response.data.data;
+          var monthlies = response.data.monthlies;
+          this.setState({data: data, dirty: false, monthlies: monthlies});
         }
 
       }.bind(this));

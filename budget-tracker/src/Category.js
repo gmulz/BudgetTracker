@@ -8,7 +8,7 @@ class Category extends Component{
 		this.state = {
 					newTxn: "",
 					newTxnCost: "",
-					showTxn: false,
+					showTxn: props.setOpen,
 					editing: false
 				};
 		

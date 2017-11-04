@@ -22,6 +22,13 @@ CORS(app)
 					cost: $4.50
 			}]
 		  }]
+	monthlies: [{
+			name: "Monthlies",
+			transactions: [{
+					title: Netflix
+					cost: $10
+			}]
+	}]
 }
 
 '''
@@ -38,18 +45,25 @@ def process_model(fname=None):
 		json_body = request.get_json(force=True)
 		filename = json_body['filename']
 		data = json_body['data']
+		monthlies = json_body['monthlies']
 		csv_string = write_data_to_csv_string(data)
+		csv_monthlies = write_data_to_csv_string(monthlies)
 		if not os.path.exists("budgets"):
 			os.makedirs("budgets")
 		with open("budgets/"+ filename + ".csv", 'w+') as csv:
 			csv.write(csv_string)
 			csv.truncate()
+		with open("budgets/monthlies.csv", 'w+') as csv_month:
+			csv_month.write(csv_monthlies)
+			csv_month.truncate()
 		# return resp
 	elif request.method == 'GET':
 		fname = request.args.get('filename')
 		print fname
 		data = read_data_from_csv(fname)
-		resp.data = json.dumps(data)
+		monthlies = read_data_from_csv("monthlies")
+		json_data = {"data": data, "monthlies": monthlies}
+		resp.data = json.dumps(json_data)
 		# return resp
 	else:
 		print request
@@ -58,7 +72,11 @@ def process_model(fname=None):
 
 def read_data_from_csv(filename):
 	data = []
+	if not os.path.exists("budgets/" + filename + ".csv"):
+		open("budgets/" + filename + ".csv", 'w+')
+		
 	with open("budgets/" + filename + ".csv", 'r+') as csv:
+		csv.seek(0)
 		header = csv.readline()
 		headings = header.split(",")
 		for i in range(0, len(headings), 2):
