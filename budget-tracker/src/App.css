@@ -74,6 +74,7 @@
   height: 100%;
   background-color: #058;
   min-height: 100vh;
+  display: table;
 
 }
 

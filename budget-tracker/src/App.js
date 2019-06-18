@@ -9,6 +9,7 @@ import axios from 'axios';
 class App extends Component {
   constructor(props) {
     super(props);
+    this.url = 'http://localhost:4000';
     this.state = {data : [],
                 monthlies: [{transactions: [], name: "Monthlies"}],
                 sum : 0,
@@ -17,7 +18,8 @@ class App extends Component {
               };
     this.categorySet = new Set();
     this.months = ["January", "February", "March", "April", "May", "June",
-                  "July", "August", "September", "October", "November", "December"]
+                  "July", "August", "September", "October", "November", "December"];
+    this.fileName = "";
     this.getDataFromServer = this.getDataFromServer.bind(this);
     this.getDataFromServer();
     var now = new Date();
@@ -240,6 +242,8 @@ class App extends Component {
 
   parseCSV(event){
     var file = event.target.files[0];
+    console.log(file);
+    this.fileName = file.name.split(".")[0];
     var reader = new FileReader();
     var self = this;
     reader.onload = function(progressEvent){
@@ -284,8 +288,8 @@ class App extends Component {
 
   sendDataToServer(){
     var now = new Date();
-    var filename = this.months[now.getMonth()] + now.getFullYear();
-    axios.post('http://localhost:5000/model',{
+    var filename = this.fileName != "" ? this.fileName : this.months[now.getMonth()] + now.getFullYear();
+    axios.post(`${this.url}/budget`,{
       filename: filename,
       data: this.state.data,
       monthlies: this.state.monthlies
@@ -300,7 +304,7 @@ class App extends Component {
   getDataFromServer(){
     var now = new Date();
     var filename = this.months[now.getMonth()] + now.getFullYear();
-    axios.get('http://localhost:5000/model',{
+    axios.get(`${this.url}/budget`,{
         params: {
           filename: filename
         }
