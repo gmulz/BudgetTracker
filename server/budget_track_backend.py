@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 import flask
 from flask_cors import CORS
 import json
@@ -8,8 +8,8 @@ import urllib
 import requests
 
 
-
-app = Flask(__name__)
+template_path = os.path.abspath("../budget-tracker/build")
+app = Flask(__name__, static_url_path="", static_folder=template_path, template_folder=template_path)
 CORS(app)
 
 '''
@@ -33,6 +33,9 @@ CORS(app)
 
 '''
 
+@app.route('/budget_app')
+def show_budget():
+	return render_template('index.html')
 
 @app.route('/model', methods=['POST', 'GET'])
 # @app.route('/model/<fname>', methods=['GET'])
@@ -59,7 +62,10 @@ def process_model(fname=None):
 		# return resp
 	elif request.method == 'GET':
 		fname = request.args.get('filename')
-		print fname
+		if not fname:
+			json_data = {"Error": "Please enter valid filename"}
+			resp.data = json.dumps(json_data)
+			return resp
 		data = read_data_from_csv(fname)
 		monthlies = read_data_from_csv("monthlies")
 		json_data = {"data": data, "monthlies": monthlies}
@@ -127,7 +133,7 @@ def write_data_to_csv_string(data):
 
 
 if __name__ == '__main__':
-	app.run(host='127.0.0.1')
+	app.run(host='127.0.0.1', port=4323)
 
 
 
